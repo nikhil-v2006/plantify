@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user in the CropWise application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "User's first name."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "User's last name."
+        },
+        "organization": {
+          "type": "string",
+          "description": "User's affiliated organization or company."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the user account was created.",
+          "format": "date-time"
+        },
+        "lastLogin": {
+          "type": "string",
+          "description": "Timestamp indicating the user's last login.",
+          "format": "date-time"
+        },
+        "gmailId": {
+          "type": "string",
+          "description": "Gmail identifier for the User entity."
+        },
+        "linkedInId": {
+          "type": "string",
+          "description": "LinkedIn identifier for the User entity."
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "firstName",
+        "lastName",
+        "createdAt"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "google.com",
+      "linkedin.com",
+      "github.com",
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile data.  Accessible only by the authenticated user with the matching userId. Includes standard profile information (email, names, organization) and timestamps for account creation and last login.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user.  This is used to ensure that only the user can access their own profile data."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure authorization independence, clarity, and scalability for the CropWise application.  The primary focus is on user authentication and data storage related to user profiles. Given the application's emphasis on AI-powered diagnostics and the need to visualize analyzed data, future data structures will be required for storing crop imagery, sensor data, and associated AI analysis results. Currently, only user data is defined. \n\n1.  **Authorization Independence:** The current structure does not have any subcollections but ensures authorization independence for user profiles.  Each user's data is stored under their unique `userId`, eliminating the need for `get()` calls in security rules to verify ownership.\n\n2.  **Structural Segregation:** User profiles are stored in a dedicated collection `/users/{userId}`, ensuring that all documents within this collection share the same security posture (i.e., accessible only by the authenticated user with the matching `userId`).\n\n3.  **Access Modeling:**  The structure implements path-based ownership for user profiles using the `/users/{userId}` path. This pattern simplifies security rules by directly associating data access with the authenticated user's ID. The absence of collaborative features in the request means that no membership maps are implemented.\n\n4. **QAPs (Rules are not Filters):** The structure enables secure `list` operations on the user collection by ensuring only authenticated users can access their profile. The structure segregates each profile by user ID which simplifies the implementation of rules."
+  }
+}
